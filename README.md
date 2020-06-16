@@ -37,3 +37,9 @@ If you selected to be notificated, any time the price is bellow the selectet pri
 Also, you could see the current info of the item in console, and the price behavior:
 
 ![setup](/img/item-info.png)
+
+Exit: 
+
+```
+ ctrl + q
+```
