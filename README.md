@@ -24,19 +24,19 @@ For initialize the app, execute:
 
 Follow the instructions:
 
-<p align="center"><img src="/img/setup.png" width="200"></p>
+<p align="left"><img src="/img/setup.png" width="300"></p>
 
 When the app is ready and you selected be notificated, you should see this notification:
 
-<p align="center"><img src="/img/first-notification.png" width="400"></p>
+<p align="left"><img src="/img/first-notification.png" width="350"></p>
 
 If you selected to be notificated, any time the price is bellow the selectet price, you will recive this notification:
 
-<p align="center"><img src="/img/price-notification.png" width="400"></p>
+<p align="left"><img src="/img/price-notification.png" width="350"></p>
 
 Also, you could see the current info of the item in console, and the price behavior:
 
-<p align="center"><img src="/img/item-info.png" width="200"></p>
+<p align="left"><img src="/img/item-info.png" width="200"></p>
 
 Exit:
 
