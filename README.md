@@ -1,4 +1,4 @@
-# Price scraping fro Ragnarok Mobile
+# Price scraping for Ragnarok Mobile
 
 A price scraping for Ragnarok Mobile.
 
