@@ -89,18 +89,26 @@ const requestLastPrice = async id => {
  *   }
  * ]
  */
-const requestItemByName = async name => {
-  let result = await fetch(`https://poring.world/api/search?order=popularity&rarity=&inStock=1&modified=&category=&endCategory=&q=${name}`);
-  let response = await result.text();
-  let body = JSON.parse(response);
+const requestItemByName = async name => { // TODO: fix + simbol and spaces using replace
+  let body;
+  try {
+    let result = await fetch(`https://poring.world/api/search?order=popularity&rarity=&inStock=1&modified=&category=&endCategory=&q=${name}`);
+    let response = await result.text();
+    body = JSON.parse(response);
+  } catch (err) {
+    body = {};
+    console.log(err);
+  }
 
   return body;
 };
 
-// Last item price for comparation purpuses
+// Last item price for comparation purpuses TODO: when implements the state in json file, load this variable at the beggining
 var pastPrice = {};
-// to check if is the first time running the script
+// to check if is the first time running the script TODO: when implements the state in json file, delte this variable
 var isFirstTime = true;
+// to memorize the falling or rising TODO: when implements the state in json file, load this variable at the beggining
+var isFalling = true;
 
 /**
  * Print the item Info
@@ -116,9 +124,18 @@ const printItem = item => {
   let diference = Math.abs(pastPrice[item.id] - lastPrice.price);
   let isEqual = (lastPrice.price === pastPrice[item.id]);
 
+  if (!isFavorable && diference > 0)
+    isFalling = false;
+
+  if (isFavorable && diference > 0)
+    isFalling = true;
+
   pastPrice[item.id] = lastPrice.price;
 
-  let favorable = `${isEqual ? '' :
+  let favorable = `${isEqual ?
+    `${isFalling ?
+      `\x1b[32m--` :
+      `\x1b[31m++`}\x1b[0m` :
     `${isFavorable ?
       `\x1b[32m--${diference}` :
       `\x1b[31m++${diference}`}\x1b[0m`}`;
