@@ -36,4 +36,10 @@ If you selected to be notificated, any time the price is bellow the selectet pri
 
 Also, you could see the current info of the item in console, and the price behavior:
 
-[<p align="center"><img src="/img/item-info.png" width="300"></p>
+[<p align="center"><img src="/img/item-info.png" width="500"></p>
+
+Exit:
+
+```
+ ctrl + q
+```
