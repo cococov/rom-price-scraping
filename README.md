@@ -22,6 +22,8 @@ For initialize the app, execute:
  npm run start
 ```
 
+Or Just double click on ``run.bat``
+
 Follow the instructions:
 
 <p align="left"><img src="/img/setup.png" width="300"></p>
