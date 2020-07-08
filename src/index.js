@@ -10,7 +10,7 @@ const {
 } = require('./notifications');
 
 var settings = {};
-var refreshTime = 60 * 1000; // [ms]
+var refreshTime = 10 * 60 * 1000; // [ms]
 var timeOutReference = null;
 
 /**

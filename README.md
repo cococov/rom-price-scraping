@@ -28,17 +28,23 @@ Follow the instructions:
 
 <p align="left"><img src="/img/setup.png" width="300"></p>
 
-When the app is ready and you selected be notificated, you should see this notification:
+When the app is ready and you selected be pontificated, you should see this notification:
 
 <p align="left"><img src="/img/first-notification.png" width="350"></p>
 
-If you selected to be notificated, any time the price is bellow the selectet price, you will recive this notification:
+If you selected to be pontificated, any time the price is bellow the selected price, you will receive this notification:
 
 <p align="left"><img src="/img/price-notification.png" width="350"></p>
 
 Also, you could see the current info of the item in console, and the price behavior:
 
 <p align="left"><img src="/img/item-info.png" width="200"></p>
+
+Setup:
+
+```
+ ctrl + s
+```
 
 Exit:
 
