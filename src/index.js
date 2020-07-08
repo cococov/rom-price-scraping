@@ -11,6 +11,7 @@ const {
 
 var settings = {};
 var refreshTime = 60 * 1000; // [ms]
+var timeOutReference = null;
 
 /**
  * hh:mm
@@ -38,9 +39,10 @@ const formatNumber = price => {
 };
 
 /**
- * Return the data of the looking Item
+ * Returns final price difference of the item
  * @param {Number} id - Item ID
- * @returns {Object}
+ * @returns {int} difference
+ * fetch result:
  * {
  *   timestamp: 1592268113,
  *   price: 155412,
@@ -49,12 +51,59 @@ const formatNumber = price => {
  *   snapEnd: 0
  * }
  */
-const requestLastPrice = async id => {
-  let result = await fetch(`https://poring.world/api/history?id=${id}&type=recent`);
-  let response = await result.text();
-  let body = JSON.parse(response);
+const getDiff = async id => {
+  let body = [];
 
-  return body[0];
+  try {
+    let result = await fetch(`https://poring.world/api/history?id=${id}&type=recent`);
+    let response = await result.text();
+    body = JSON.parse(response);
+
+  } catch (err) {
+    return 0;
+  }
+
+  return (body[0].price - body[1].price);
+};
+
+/**
+ * Returns the last price difference of the item (only run the first time)
+ * @param {Number} id - Item ID
+ * @returns {int} difference
+ * fetch result:
+ * {
+ *   timestamp: 1592268113,
+ *   price: 155412,
+ *   stock: 2954,
+ *   snapBuyers: 0,
+ *   snapEnd: 0
+ * }
+ */
+const getFirstDiff = async id => {
+  let body = [];
+
+  try {
+    let result = await fetch(`https://poring.world/api/history?id=${id}&type=recent`);
+    let response = await result.text();
+    body = JSON.parse(response);
+
+  } catch (err) {
+    return 0;
+  }
+
+  // checks the last different price and compare it to the last price
+  let lastPrice = body[0].price;
+  let priceToCompare = body[1].price;
+  for (let key in body) {
+    let item = body[key];
+    if ((lastPrice - item.price) !== 0) {
+      priceToCompare = item.price;
+      break;
+    }
+  }
+
+  let difference = lastPrice - priceToCompare;
+  return difference;
 };
 
 /**
@@ -89,64 +138,77 @@ const requestLastPrice = async id => {
  *   }
  * ]
  */
-const requestItemByName = async name => { // TODO: fix + simbol and spaces using replace
+const requestItemByName = async name => {
   let body;
+
   try {
-    let result = await fetch(`https://poring.world/api/search?order=popularity&rarity=&inStock=1&modified=&category=&endCategory=&q=${name}`);
+    let params = new URLSearchParams({
+      order: 'popularity',
+      rarity: '',
+      inStock: 1,
+      modified: '',
+      category: '',
+      endCategory: '',
+      q: name
+    });
+    let result = await fetch(`https://poring.world/api/search?${params.toString()}`);
     let response = await result.text();
     body = JSON.parse(response);
   } catch (err) {
-    body = {};
-    console.log(err);
+    body = [{
+      id: -1,
+      name: "REQUEST_ERROR",
+      lastRecord: {
+        timestamp: 0,
+        price: 0,
+        stock: 0,
+        snapBuyers: 0,
+        snapEnd: 0
+      }
+    }];
   }
 
   return body;
 };
 
-// Last item price for comparation purpuses TODO: when implements the state in json file, load this variable at the beggining
-var pastPrice = {};
-// to check if is the first time running the script TODO: when implements the state in json file, delte this variable
 var isFirstTime = true;
-// to memorize the falling or rising TODO: when implements the state in json file, load this variable at the beggining
 var isFalling = true;
 
 /**
  * Print the item Info
  * @param {Object} item - Item data
  */
-const printItem = item => {
+const printItem = async item => {
+  let id = item.id;
   let lastPrice = item.lastRecord;
   let name = item.name;
   let price = formatNumber(lastPrice.price);
   let stock = formatNumber(lastPrice.stock);
 
-  let isFavorable = (lastPrice.price < pastPrice[item.id]);
-  let diference = Math.abs(pastPrice[item.id] - lastPrice.price);
-  let isEqual = (lastPrice.price === pastPrice[item.id]);
+  let differenceWithSymbol = isFirstTime
+    ? await getFirstDiff(id)
+    : await getDiff(id);
+  let difference = Math.abs(differenceWithSymbol);
+  let isEqual = (differenceWithSymbol === 0);
 
-  if (!isFavorable && diference > 0)
-    isFalling = false;
+  if (!isEqual)
+    isFalling = (differenceWithSymbol > 0);
 
-  if (isFavorable && diference > 0)
-    isFalling = true;
-
-  pastPrice[item.id] = lastPrice.price;
-
-  let favorable = `${isEqual ?
-    `${isFalling ?
-      `\x1b[32m--` :
-      `\x1b[31m++`}\x1b[0m` :
-    `${isFavorable ?
-      `\x1b[32m--${diference}` :
-      `\x1b[31m++${diference}`}\x1b[0m`}`;
+  let favorable = `${isEqual
+    ? `${isFalling
+      ? `\x1b[32m--`
+      : `\x1b[31m++`}`
+    : `${isFalling
+      ? `\x1b[32m--${difference}`
+      : `\x1b[31m++${difference}`}`}\x1b[0m`;
 
   console.log(`Name: ${name}`);
-  console.log(`Price: $ ${price} ${isFirstTime ? '' : favorable}`);
+  console.log(`Price: $ ${price} ${favorable}`);
   console.log(`Stock: ${stock}`);
 
   if (lastPrice.snapEnd !== 0) {
-    let snapBuyers = formatNumber(lastPrice.snapBuyers)
-    let snapEnd = lastPrice.snapEnd
+    let snapBuyers = formatNumber(lastPrice.snapBuyers);
+    let snapEnd = lastPrice.snapEnd;
 
     console.log(`\nItem in \x1b[31mSNAP\x1b[0m`);
     console.log(`Snap Buyers: ${snapBuyers}`);
@@ -163,7 +225,7 @@ const printItem = item => {
  * Loop.
  * Clean the console.
  * Print the last data of the item in console.
- * Checks if the item has a desable price and send a windows notification.
+ * Checks if the item has a desirable price and send a windows notification.
  */
 const cycle = async () => {
   const { itemName, maxResult } = settings;
@@ -175,24 +237,27 @@ const cycle = async () => {
   console.log('------------');
 
   if (maxResult === 0) {
-    itemList.forEach(item => printItem(item));
+    await Promise.all(
+      itemList.map(async item => { await printItem(item) })
+    );
   } else {
     for (let i = 0; i < maxResult; i++) {
-      printItem(itemList[i]);
+      await printItem(itemList[i]);
     }
   }
 
 
   console.log(`\nRefresh Time: ${refreshTime / 1000}[s]`);
+  console.log(`Setup: 'ctrl + s'`);
   console.log(`Exit: 'ctrl + q'`);
 
   isFirstTime = false;
-  setTimeout(() => {
+  timeOutReference = setTimeout(() => {
     cycle();
   }, refreshTime);
 };
 
-/* Key listener for exit and suff */
+/* Key listener for exit and stuff */
 const keyListener = async () => {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -207,7 +272,14 @@ const keyListener = async () => {
   process.stdin.on('keypress', (str, key) => {
     if (key.ctrl && key.name === 'q')
       process.exit();
+    if (key.ctrl && key.name === 's')
+      runSetup();
   });
+};
+
+const runSetup = async () => {
+  clearTimeout(timeOutReference);
+  init();
 };
 
 /* _INIT_ */
@@ -227,4 +299,4 @@ const init = async () => {
 // start
 init();
 
-// TODO: add last price before close to a json file for future comparations
+// TODO: add last price before close to a json file for future comparisons

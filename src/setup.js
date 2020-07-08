@@ -21,7 +21,7 @@ const setup = async () => {
     {
       type: 'confirm',
       name: 'isNotificationActive',
-      message: 'Do you wanna recive notifications?',
+      message: 'Do you wanna receive notifications?',
       default: false
     }
   ]);
