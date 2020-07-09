@@ -192,7 +192,7 @@ const printItem = async item => {
   let isEqual = (differenceWithSymbol === 0);
 
   if (!isEqual)
-    isFalling = (differenceWithSymbol > 0);
+    isFalling = (differenceWithSymbol < 0);
 
   let favorable = `${isEqual
     ? `${isFalling
