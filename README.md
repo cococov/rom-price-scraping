@@ -32,7 +32,7 @@ When the app is ready and you selected be pontificated, you should see this noti
 
 <p align="left"><img src="/img/first-notification.png" width="350"></p>
 
-If you selected to be pontificated, any time the price is bellow the selected price, you will receive this notification:
+If you selected be notificated, any time the price is bellow the selected price, you will receive this notification:
 
 <p align="left"><img src="/img/price-notification.png" width="350"></p>
 
